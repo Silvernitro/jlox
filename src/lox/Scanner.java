@@ -69,7 +69,7 @@ public class Scanner {
                 addToken(match('=') ? TokenType.LESS_EQUAL :
                                  TokenType.LESS);
                 break;
-            case  '/':
+            case '/':
                 if (match('/')) {
                     // if this is a comment, consume the rest of the line
                     while (!isEnd() && peek() != '\n') {
@@ -78,6 +78,14 @@ public class Scanner {
                 } else {
                     addToken(TokenType.SLASH);
                 }
+                break;
+
+            //---------- whitespaces ---------//
+            case '\r':
+            case '\t':
+                break;
+            case '\n':
+                this.currentLine++;
                 break;
 
             default:
