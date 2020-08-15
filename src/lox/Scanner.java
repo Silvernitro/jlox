@@ -88,6 +88,9 @@ public class Scanner {
                 this.currentLine++;
                 break;
 
+            //---------- literals ---------//
+            case '"': string(); break;
+
             default:
                 Lox.error(this.currentLine, "Unexpected token: " + c);
                 break;
@@ -95,7 +98,7 @@ public class Scanner {
     }
 
     private boolean match(char c) {
-        if (isEnd() || this.source.charAt(this.current) != c)  return false;
+        if (isEnd() || this.source.charAt(this.current) != c) return false;
         // only consume this char if match
         this.current++;
         return true;
@@ -104,6 +107,26 @@ public class Scanner {
     private char peek() {
         if (isEnd()) return '\0';
         return this.source.charAt(this.current);
+    }
+
+    private void string() {
+        while (!isEnd() && peek() != '"') {
+            // allow multiline strings
+            if (peek() == '\n') this.currentLine++;
+            this.current++;
+        }
+        // if we are at the end at this point, then the string was not closed
+        if (isEnd()) {
+            Lox.error(this.currentLine, "unterminated string");
+            return;
+        }
+
+        // get the string value without quotes
+        String value = source.substring(this.start + 1, this.current);
+        addToken(TokenType.STRING, value);
+
+        // consume the closing quote
+        this.current++;
     }
 
     // add non-literal token
