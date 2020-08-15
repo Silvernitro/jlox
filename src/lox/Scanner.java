@@ -104,6 +104,7 @@ public class Scanner {
         return true;
     }
 
+    // peeks the current character without consuming it
     private char peek() {
         if (isEnd()) return '\0';
         return this.source.charAt(this.current);
@@ -127,6 +128,36 @@ public class Scanner {
 
         // consume the closing quote
         this.current++;
+    }
+
+    private void number() {
+        while (!isEnd() && isDigit(peek())) {
+            this.current++;
+        }
+
+        // handle floating point digits
+        if (peek() == '.' && isDigit(peekNext())) {
+            // skip the '.'
+            this.current++;
+            // continue consuming digits
+            while(!isEnd() && isDigit(peek())) {
+                this.current++;
+            }
+        }
+
+        double value = Double.parseDouble(source.substring(this.start,
+                                                   this.current + 1));
+        addToken(TokenType.NUMBER, value);
+    }
+
+    private boolean isDigit(char c) {
+        return c >= '0' && c <= '9';
+    }
+
+    // peeks 1 character ahead without consuming it
+    private char peekNext() {
+        if (this.current + 1 > this.source.length()) return '\0';
+        return this.source.charAt(this.current + 1);
     }
 
     // add non-literal token
