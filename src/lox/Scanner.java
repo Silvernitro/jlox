@@ -1,19 +1,43 @@
 package lox;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class Scanner {
+    //-------- INITIALIZE RESERVED KEYWORDS --------//
+    private static final HashMap<String, TokenType> keywords = new HashMap<>();
+
+    static {
+        keywords.put("and", TokenType.AND);
+        keywords.put("class", TokenType.CLASS);
+        keywords.put("else", TokenType.ELSE);
+        keywords.put("false", TokenType.FALSE);
+        keywords.put("for", TokenType.FOR);
+        keywords.put("fun", TokenType.FUN);
+        keywords.put("if", TokenType.IF);
+        keywords.put("nil", TokenType.NIL);
+        keywords.put("or", TokenType.OR);
+        keywords.put("print", TokenType.PRINT);
+        keywords.put("return", TokenType.RETURN);
+        keywords.put("super", TokenType.SUPER);
+        keywords.put("this", TokenType.THIS);
+        keywords.put("true", TokenType.TRUE);
+        keywords.put("var", TokenType.VAR);
+        keywords.put("while", TokenType.WHILE);
+    }
+    //-------- END INITIALIZE RESERVED KEYWORDS --------//
+
+    //-------- START INSTANCE VARS --------//
     private final String source;
     private ArrayList<Token> tokens = new ArrayList<>();
-
     // position of the current lexeme's start
     private int start = 0;
     // position of char we are curr at
     private int current = 0;
     // the line that the curr lexeme is on
     private int currentLine = 1;
+    //-------- END INSTANCE VARS --------//
 
-    // Scanner takes in any string to scan
     Scanner(String source) {
         this.source = source;
     }
@@ -89,10 +113,17 @@ public class Scanner {
                 break;
 
             //---------- literals ---------//
-            case '"': string(); break;
-
+            case '"':
+                string();
+                break;
             default:
-                Lox.error(this.currentLine, "Unexpected token: " + c);
+                if (isDigit(c)) {
+                    number();
+                } else if (isAlpha(c)) {
+                    identifier();
+                } else {
+                    Lox.error(this.currentLine, "Unexpected token: " + c);
+                }
                 break;
         }
     }
@@ -131,6 +162,7 @@ public class Scanner {
     }
 
     private void number() {
+        // greedily consume
         while (!isEnd() && isDigit(peek())) {
             this.current++;
         }
@@ -140,18 +172,44 @@ public class Scanner {
             // skip the '.'
             this.current++;
             // continue consuming digits
-            while(!isEnd() && isDigit(peek())) {
+            while (!isEnd() && isDigit(peek())) {
                 this.current++;
             }
         }
 
-        double value = Double.parseDouble(source.substring(this.start,
-                                                   this.current + 1));
+        double value = Double.parseDouble(source.substring(
+                this.start,
+                this.current + 1
+        ));
         addToken(TokenType.NUMBER, value);
+    }
+
+    private void identifier() {
+        // greedily consume
+        while (!isEnd() && isAlphaNumeric(peek())) {
+            this.current++;
+        }
+
+        // get identifier lexeme
+        String lexeme = this.source.substring(start, current);
+        // get keyword type if lexeme is a keyword, else it is just an
+        // IDENTIFIER
+        TokenType type = keywords.getOrDefault(lexeme, TokenType.IDENTIFIER);
+        addToken(type);
     }
 
     private boolean isDigit(char c) {
         return c >= '0' && c <= '9';
+    }
+
+    private boolean isAlpha(char c) {
+        return (c >= 'a' && c <= 'z') ||
+                (c >= 'A' && c <= 'Z') ||
+                c == '_';
+    }
+
+    private boolean isAlphaNumeric(char c) {
+        return isAlpha(c) || isDigit(c);
     }
 
     // peeks 1 character ahead without consuming it
