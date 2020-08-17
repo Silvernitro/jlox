@@ -56,7 +56,7 @@ public class Scanner {
     }
 
     private boolean isEnd() {
-        return current > this.source.length();
+        return current >= this.source.length();
     }
 
     private void scanToken() {
@@ -105,6 +105,7 @@ public class Scanner {
                 break;
 
             //---------- whitespaces ---------//
+            case ' ':
             case '\r':
             case '\t':
                 break;
@@ -179,7 +180,7 @@ public class Scanner {
 
         double value = Double.parseDouble(source.substring(
                 this.start,
-                this.current + 1
+                this.current
         ));
         addToken(TokenType.NUMBER, value);
     }
