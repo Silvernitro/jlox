@@ -76,8 +76,31 @@ public class Interpreter implements Expr.Visitor<Object> {
         }
     }
 
+    public void interpret(Expr expr) {
+        try {
+            Object result = evaluate(expr);
+            System.out.println(stringify(result));
+        } catch (RuntimeError error) {
+            Lox.runtimeError(error);
+        }
+    }
+
     private Object evaluate(Expr expr) {
         return expr.accept(this);
+    }
+
+    private String stringify(Object obj) {
+        if (obj == null) return "nil";
+
+        if (obj instanceof Double) {
+            String strRepresentation = obj.toString();
+            if (strRepresentation.endsWith(".0")) {
+                // trim and display as integer
+                return strRepresentation.substring(0, strRepresentation.length() - 2);
+            }
+        }
+
+        return obj.toString();
     }
 
     private boolean isTruthy(Object value) {
