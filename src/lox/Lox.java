@@ -6,6 +6,7 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.List;
 
 public class Lox {
     static Interpreter interpreter = new Interpreter();
@@ -45,7 +46,7 @@ public class Lox {
 
         while(true) {
             String line = reader.readLine();
-            System.out.println(line);
+//            System.out.println(line);
 
             // when ctrl-D is pressed, reader returns null
             if (line == null) {
@@ -60,11 +61,11 @@ public class Lox {
         Scanner scanner = new Scanner(code);
         ArrayList<Token> tokens = scanner.scanTokens();
         Parser parser = new Parser(tokens);
-        Expr expr = parser.parse();
+        List<Stmt> statements = parser.parse();
         // check for parse errors
         if (hadError) return;
 
-        interpreter.interpret(expr);
+        interpreter.interpret(statements);
     }
 
     static void error(int line, String message) {
