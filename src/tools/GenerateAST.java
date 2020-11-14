@@ -21,6 +21,10 @@ public class GenerateAST {
         }
         String outputDirectory = args[0];
         defineAST(outputDirectory, "Expr", AST_TYPES);
+        defineAST(outputDirectory, "Stmt", Arrays.asList(
+            "Expression: Expr expression",
+            "Print: Expr expression"
+        ));
     }
 
     private static void defineAST(String outputDirectory, String baseName, List<String> types)
