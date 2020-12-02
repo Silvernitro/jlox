@@ -3,6 +3,7 @@ package lox;
 import java.util.List;
 
 public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
+    private final Environment environment = new Environment();
 
     @Override
     public Object visitLiteralExpr(Expr.Literal literal) {
@@ -79,6 +80,11 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
 
     @Override
+    public Object visitVariableExpr(Expr.Variable variable) {
+        return environment.get(variable.name);
+    }
+
+    @Override
     public Void visitExpressionStmt(Stmt.Expression expressionStmt) {
         evaluate(expressionStmt.expression);
         return null;
@@ -88,6 +94,17 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     public Void visitPrintStmt(Stmt.Print printStmt) {
         Object result = evaluate(printStmt.expression);
         System.out.println(stringify(result));
+        return null;
+    }
+
+    @Override
+    public Void visitVarStmt(Stmt.Var varStmt) {
+        Object value = null;
+        if (varStmt.initializer != null) {
+            value = evaluate(varStmt.initializer);
+        }
+
+        environment.define(varStmt.name.lexeme, value);
         return null;
     }
 
