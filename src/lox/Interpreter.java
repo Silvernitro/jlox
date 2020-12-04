@@ -1,6 +1,9 @@
 package lox;
 
-public class Interpreter implements Expr.Visitor<Object> {
+import java.util.List;
+
+public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
+    private Environment environment = new Environment();
 
     @Override
     public Object visitLiteralExpr(Expr.Literal literal) {
@@ -76,13 +79,73 @@ public class Interpreter implements Expr.Visitor<Object> {
         }
     }
 
-    public void interpret(Expr expr) {
+    @Override
+    public Object visitVariableExpr(Expr.Variable variable) {
+        return environment.get(variable.name);
+    }
+
+    @Override
+    public Object visitAssignExpr(Expr.Assign assign) {
+        Object value = evaluate(assign.value);
+        environment.assign(assign.name, value);
+        return value;
+    }
+
+    @Override
+    public Void visitExpressionStmt(Stmt.Expression expressionStmt) {
+        evaluate(expressionStmt.expression);
+        return null;
+    }
+
+    @Override
+    public Void visitPrintStmt(Stmt.Print printStmt) {
+        Object result = evaluate(printStmt.expression);
+        System.out.println(stringify(result));
+        return null;
+    }
+
+    @Override
+    public Void visitVarStmt(Stmt.Var varStmt) {
+        Object value = null;
+        if (varStmt.initializer != null) {
+            value = evaluate(varStmt.initializer);
+        }
+
+        environment.define(varStmt.name.lexeme, value);
+        return null;
+    }
+
+    @Override
+    public Void visitBlockStmt(Stmt.Block blockStmt) {
+        executeBlock(blockStmt.statements, new Environment(environment));
+        return null;
+    }
+
+    private void executeBlock(List<Stmt> statements, Environment environment) {
+        // retain a copy of the outer environment to restore after the block
+        Environment original = this.environment;
+
         try {
-            Object result = evaluate(expr);
-            System.out.println(stringify(result));
+            // statements within a block are interpreted in a new local env
+            this.environment = environment;
+            interpret(statements);
+        } finally {
+            this.environment = original;
+        }
+    }
+
+    public void interpret(List<Stmt> statements) {
+        try {
+            for (Stmt stmt : statements) {
+                execute(stmt);
+            }
         } catch (RuntimeError error) {
             Lox.runtimeError(error);
         }
+    }
+
+    private void execute(Stmt stmt) {
+        stmt.accept(this);
     }
 
     private Object evaluate(Expr expr) {

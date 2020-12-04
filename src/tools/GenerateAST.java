@@ -11,7 +11,9 @@ public class GenerateAST {
         "Binary: Expr left, Token operator, Expr right",
         "Grouping: Expr expression",
         "Literal: Object value",
-        "Unary: Token operator, Expr right"
+        "Unary: Token operator, Expr right",
+        "Variable: Token name",
+        "Assign: Token name, Expr value"
     );
 
     public static void main(String[] args) throws IOException {
@@ -21,6 +23,12 @@ public class GenerateAST {
         }
         String outputDirectory = args[0];
         defineAST(outputDirectory, "Expr", AST_TYPES);
+        defineAST(outputDirectory, "Stmt", Arrays.asList(
+            "Expression: Expr expression",
+            "Print: Expr expression",
+            "Var: Token name, Expr initializer",
+            "Block: List<Stmt> statements"
+        ));
     }
 
     private static void defineAST(String outputDirectory, String baseName, List<String> types)
