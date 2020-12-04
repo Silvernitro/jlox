@@ -3,7 +3,7 @@ package lox;
 import java.util.List;
 
 public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
-    private final Environment environment = new Environment();
+    private Environment environment = new Environment();
 
     @Override
     public Object visitLiteralExpr(Expr.Literal literal) {
@@ -115,6 +115,24 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         return null;
     }
 
+    @Override
+    public Void visitBlockStmt(Stmt.Block blockStmt) {
+        executeBlock(blockStmt.statements, new Environment(environment));
+        return null;
+    }
+
+    private void executeBlock(List<Stmt> statements, Environment environment) {
+        // retain a copy of the outer environment to restore after the block
+        Environment original = this.environment;
+
+        try {
+            // statements within a block are interpreted in a new local env
+            this.environment = environment;
+            interpret(statements);
+        } finally {
+            this.environment = original;
+        }
+    }
 
     public void interpret(List<Stmt> statements) {
         try {

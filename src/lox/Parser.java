@@ -52,8 +52,28 @@ public class Parser {
     }
 
     private Stmt statement() {
+        if (match(TokenType.LEFT_BRACE)) return blockStatement();
         if (match(TokenType.PRINT)) return printStatement();
         return expressionStatement();
+    }
+
+    private Stmt blockStatement() {
+        return new Stmt.Block(block());
+    }
+
+    /**
+     * A util fxn to parse statements within a single block.
+     *
+     * @return A list of statements between a pair of opening and closing braces.
+     */
+    private List<Stmt> block() {
+        var statements = new ArrayList<Stmt>();
+        while (!isAtEnd() && !check(TokenType.RIGHT_BRACE)) {
+            statements.add(declaration());
+        }
+
+        consume(TokenType.RIGHT_BRACE, "Expect '}' after block.");
+        return statements;
     }
 
     private Stmt printStatement() {
