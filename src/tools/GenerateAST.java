@@ -12,7 +12,8 @@ public class GenerateAST {
         "Grouping: Expr expression",
         "Literal: Object value",
         "Unary: Token operator, Expr right",
-        "Variable: Token name"
+        "Variable: Token name",
+        "Assign: Token name, Expr value"
     );
 
     public static void main(String[] args) throws IOException {

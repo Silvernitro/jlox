@@ -85,6 +85,13 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
 
     @Override
+    public Object visitAssignExpr(Expr.Assign assign) {
+        Object value = evaluate(assign.value);
+        environment.assign(assign.name, value);
+        return value;
+    }
+
+    @Override
     public Void visitExpressionStmt(Stmt.Expression expressionStmt) {
         evaluate(expressionStmt.expression);
         return null;
@@ -107,6 +114,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         environment.define(varStmt.name.lexeme, value);
         return null;
     }
+
 
     public void interpret(List<Stmt> statements) {
         try {
