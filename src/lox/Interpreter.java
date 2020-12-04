@@ -134,6 +134,17 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         }
     }
 
+    @Override
+    public Void visitIfStmt(Stmt.If ifStmt) {
+        boolean condition = isTruthy(evaluate(ifStmt.condition));
+        if (condition) {
+            execute(ifStmt.thenBranch);
+        } else if (ifStmt.elseBranch != null) {
+            execute(ifStmt.elseBranch);
+        }
+        return null;
+    }
+
     public void interpret(List<Stmt> statements) {
         try {
             for (Stmt stmt : statements) {
