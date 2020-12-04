@@ -92,6 +92,18 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
 
     @Override
+    public Object visitLogicalExpr(Expr.Logical logical) {
+        Object left = evaluate(logical.left);
+        boolean isLeftTruthy = isTruthy(left);
+
+        if (logical.operator.type == TokenType.OR)  {
+            return isLeftTruthy ? left : evaluate(logical.right);
+        } else {
+            return isLeftTruthy ? evaluate(logical.right) : left;
+        }
+    }
+
+    @Override
     public Void visitExpressionStmt(Stmt.Expression expressionStmt) {
         evaluate(expressionStmt.expression);
         return null;
