@@ -1,6 +1,7 @@
 package lox;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class Parser {
@@ -56,6 +57,7 @@ public class Parser {
         if (match(TokenType.PRINT)) return printStatement();
         if (match(TokenType.IF)) return ifStatement();
         if (match(TokenType.WHILE)) return whileStatement();
+        if (match(TokenType.FOR)) return forStatement();
         return expressionStatement();
     }
 
@@ -104,6 +106,52 @@ public class Parser {
         consume(TokenType.RIGHT_PAREN, "Expect ')' after condition");
         Stmt body = statement();
         return new Stmt.While(condition, body);
+    }
+
+    private Stmt forStatement() {
+        consume(TokenType.LEFT_PAREN, "Expect '(' after 'for'.");
+
+        Stmt initializer;
+        Expr condition = null;
+        Expr increment = null;
+
+        if (match(TokenType.SEMICOLON)) {
+            initializer = null;
+        } else if (match(TokenType.VAR)) {
+            initializer = varDeclaration();
+        } else {
+            initializer = expressionStatement();
+        }
+
+        if (!check(TokenType.SEMICOLON)) {
+            condition = expression();
+        }
+        consume(TokenType.SEMICOLON, "Expect ';' after loop condition");
+
+        if (!check(TokenType.RIGHT_PAREN)) {
+            increment = expression();
+        }
+        consume(TokenType.RIGHT_PAREN, "Expect ')' after for loop clauses.");
+
+        Stmt body = statement();
+
+        // --------- start desugaring -----------//
+        if (increment != null) {
+            body = new Stmt.Block(Arrays.asList(body, new Stmt.Expression(increment)));
+        }
+
+        if (condition != null) {
+            body = new Stmt.While(condition, body);
+        } else {
+            body = new Stmt.While(new Expr.Literal(true), body);
+        }
+
+        if (initializer != null) {
+            body = new Stmt.Block(Arrays.asList(initializer, body));
+        }
+        // --------- end desugaring -----------//
+
+        return body;
     }
 
     private Stmt expressionStatement() {
