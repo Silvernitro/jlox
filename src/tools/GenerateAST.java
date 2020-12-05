@@ -13,7 +13,8 @@ public class GenerateAST {
         "Literal: Object value",
         "Unary: Token operator, Expr right",
         "Variable: Token name",
-        "Assign: Token name, Expr value"
+        "Assign: Token name, Expr value",
+        "Logical: Expr left, Token operator, Expr right"
     );
 
     public static void main(String[] args) throws IOException {
@@ -27,7 +28,9 @@ public class GenerateAST {
             "Expression: Expr expression",
             "Print: Expr expression",
             "Var: Token name, Expr initializer",
-            "Block: List<Stmt> statements"
+            "Block: List<Stmt> statements",
+            "If: Expr condition, Stmt thenBranch, Stmt elseBranch",
+            "While: Expr condition, Stmt body"
         ));
     }
 

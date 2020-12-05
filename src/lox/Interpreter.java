@@ -92,6 +92,18 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
 
     @Override
+    public Object visitLogicalExpr(Expr.Logical logical) {
+        Object left = evaluate(logical.left);
+        boolean isLeftTruthy = isTruthy(left);
+
+        if (logical.operator.type == TokenType.OR)  {
+            return isLeftTruthy ? left : evaluate(logical.right);
+        } else {
+            return isLeftTruthy ? evaluate(logical.right) : left;
+        }
+    }
+
+    @Override
     public Void visitExpressionStmt(Stmt.Expression expressionStmt) {
         evaluate(expressionStmt.expression);
         return null;
@@ -132,6 +144,25 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         } finally {
             this.environment = original;
         }
+    }
+
+    @Override
+    public Void visitIfStmt(Stmt.If ifStmt) {
+        boolean condition = isTruthy(evaluate(ifStmt.condition));
+        if (condition) {
+            execute(ifStmt.thenBranch);
+        } else if (ifStmt.elseBranch != null) {
+            execute(ifStmt.elseBranch);
+        }
+        return null;
+    }
+
+    @Override
+    public Void visitWhileStmt(Stmt.While whileStmt) {
+        while (isTruthy(evaluate(whileStmt.condition))) {
+            execute(whileStmt.body);
+        }
+        return null;
     }
 
     public void interpret(List<Stmt> statements) {
