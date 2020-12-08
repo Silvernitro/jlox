@@ -5,8 +5,8 @@ import java.util.List;
 
 public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     /** holds pre-defined native functions **/
-    private final Environment GLOBALS = new Environment();
-    private Environment environment = GLOBALS;
+    final Environment GLOBALS = new Environment();
+    Environment environment = GLOBALS;
 
     Interpreter() {
         GLOBALS.define("clock", new LoxCallable() {
@@ -179,7 +179,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         return null;
     }
 
-    private void executeBlock(List<Stmt> statements, Environment environment) {
+    void executeBlock(List<Stmt> statements, Environment environment) {
         // retain a copy of the outer environment to restore after the block
         Environment original = this.environment;
 
