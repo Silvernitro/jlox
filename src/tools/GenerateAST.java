@@ -29,6 +29,7 @@ public class GenerateAST {
             "Expression: Expr expression",
             "Print: Expr expression",
             "Var: Token name, Expr initializer",
+            "Return: Token keyword, Expr value",
             "Function: Token name, List<Token> params, List<Stmt> body",
             "Block: List<Stmt> statements",
             "If: Expr condition, Stmt thenBranch, Stmt elseBranch",

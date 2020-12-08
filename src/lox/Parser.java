@@ -84,6 +84,7 @@ public class Parser {
         if (match(TokenType.IF)) return ifStatement();
         if (match(TokenType.WHILE)) return whileStatement();
         if (match(TokenType.FOR)) return forStatement();
+        if (match(TokenType.RETURN)) return returnStatement();
         return expressionStatement();
     }
 
@@ -178,6 +179,18 @@ public class Parser {
         // --------- end desugaring -----------//
 
         return body;
+    }
+
+    private Stmt returnStatement() {
+        Token keyword = previous();
+
+        Expr value = null;
+        if (!check(TokenType.SEMICOLON)) {
+            value = expression();
+        }
+
+        consume(TokenType.SEMICOLON, "Expect ';' after return value.");
+        return new Stmt.Return(keyword, value);
     }
 
     private Stmt expressionStatement() {
