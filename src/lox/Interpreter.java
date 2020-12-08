@@ -4,7 +4,28 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
-    private Environment environment = new Environment();
+    /** holds pre-defined native functions **/
+    private final Environment GLOBALS = new Environment();
+    private Environment environment = GLOBALS;
+
+    Interpreter() {
+        GLOBALS.define("clock", new LoxCallable() {
+            @Override
+            public Object call(Interpreter interpreter, List<Object> arguments) {
+                return (double) System.currentTimeMillis() / 1000.0;
+            }
+
+            @Override
+            public int arity() {
+                return 0;
+            }
+
+            @Override
+            public String toString() {
+                return "<native fn>";
+            }
+        });
+    }
 
     @Override
     public Object visitLiteralExpr(Expr.Literal literal) {
