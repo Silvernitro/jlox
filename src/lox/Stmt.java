@@ -8,8 +8,8 @@ abstract class Stmt {
         R visitPrintStmt(Print print);
         R visitVarStmt(Var var);
         R visitBlockStmt(Block block);
-        R visitIfStmt(If ifStmt);
-        R visitWhileStmt(While whileStmt);
+        R visitIfStmt(If If);
+        R visitWhileStmt(While While);
     }
 
     abstract <R> R accept(Visitor<R> visitor);

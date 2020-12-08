@@ -260,11 +260,44 @@ public class Parser {
     private Expr unary() {
         if (match(TokenType.BANG, TokenType.MINUS)) {
             Token operator = previous();
-            Expr right = unary();
+            Expr right = call();
             return new Expr.Unary(operator, right);
         }
 
-        return primary();
+        return call();
+    }
+
+    private Expr call() {
+        Expr expr = primary();
+
+        while (true) {
+            if (match(TokenType.LEFT_PAREN)) {
+                expr = finishCall(expr);
+            } else {
+                break;
+            }
+        }
+
+        return expr;
+    }
+
+    private Expr finishCall(Expr expr) {
+        List<Expr> arguments = new ArrayList<>();
+
+        if (!check(TokenType.RIGHT_PAREN)) {
+            arguments.add(expression());
+        }
+
+        while (match(TokenType.COMMA)) {
+            if (arguments.size() >= 255) {
+                // note: error is not thrown to prevent parser synchronization
+                error(peek(), "Functions cannot have more than 255 arguments.");
+            }
+            arguments.add(expression());
+        }
+
+        Token closingParen = consume(TokenType.RIGHT_PAREN, "Expect ')' after arguments.");
+        return new Expr.Call(expr, arguments, closingParen);
     }
 
     private Expr primary() {

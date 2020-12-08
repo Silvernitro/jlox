@@ -9,6 +9,7 @@ import java.util.List;
 public class GenerateAST {
     public static final List<String> AST_TYPES = Arrays.asList(
         "Binary: Expr left, Token operator, Expr right",
+        "Call: Expr callee, List<Expr> arguments, Token paren",
         "Grouping: Expr expression",
         "Literal: Object value",
         "Unary: Token operator, Expr right",
