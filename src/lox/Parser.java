@@ -32,6 +32,9 @@ public class Parser {
             if (match(TokenType.VAR)) {
                 return varDeclaration();
             }
+            if (match(TokenType.FUN)) {
+                return function("function");
+            }
             // fall-through to next grammar rule
             return statement();
         } catch (ParseError error) {
@@ -50,6 +53,29 @@ public class Parser {
 
         consume(TokenType.SEMICOLON, "Expect ';' after variable declaration.");
         return new Stmt.Var(name, initializer);
+    }
+
+    /** Type will enable methods vs function disparity later on **/
+    private Stmt function(String type) {
+        Token name = consume(TokenType.IDENTIFIER, "Expect " + type + " name.");
+        consume(TokenType.LEFT_PAREN, "Expect '(' after function name.");
+
+        List<Token> params = new ArrayList<>();
+        if (!check(TokenType.RIGHT_PAREN)) {
+            do {
+                if (params.size() >= 255) {
+                    // note: error is not thrown to prevent parser synchronization
+                    error(peek(), "Functions cannot have more than 255 parameters.");
+                }
+                params.add(consume(TokenType.IDENTIFIER, "Expect parameter name."));
+            } while (match(TokenType.COMMA));
+        }
+
+        consume(TokenType.RIGHT_PAREN, "Expect ')' after parameters.");
+        consume(TokenType.LEFT_BRACE, "Expect '{' before " + type + " body.");
+        List<Stmt> body = block();
+
+        return new Stmt.Function(name, params, body);
     }
 
     private Stmt statement() {
