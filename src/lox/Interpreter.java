@@ -163,6 +163,14 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
 
     @Override
+    public Void visitReturnStmt(Stmt.Return returnStmt) {
+        Object value = returnStmt.value == null
+                   ? null
+                   : evaluate(returnStmt.value);
+        throw new Return(value);
+    }
+
+    @Override
     public Void visitVarStmt(Stmt.Var varStmt) {
         Object value = null;
         if (varStmt.initializer != null) {

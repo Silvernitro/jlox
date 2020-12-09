@@ -190,6 +190,7 @@ public class Parser {
         }
 
         consume(TokenType.SEMICOLON, "Expect ';' after return value.");
+        // TODO: keyword token is unused by the interpreter
         return new Stmt.Return(keyword, value);
     }
 
