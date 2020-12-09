@@ -4,15 +4,16 @@ import java.util.List;
 
 public class LoxFunction implements LoxCallable {
     private final Stmt.Function declaration;
+    private final Environment closure;
 
-    LoxFunction(Stmt.Function declaration) {
+    LoxFunction(Stmt.Function declaration, Environment closure) {
         this.declaration = declaration;
+        this.closure = closure;
     }
 
     @Override
     public Object call(Interpreter interpreter, List<Object> arguments) {
-        // TODO: check why we extend GLOBALS and not curr environment
-        Environment local = new Environment(interpreter.GLOBALS);
+        Environment local = new Environment(closure);
 
         // Note: args and params are guaranteed to be same size due to arity check
         for (int i = 0; i < arguments.size(); i++) {
