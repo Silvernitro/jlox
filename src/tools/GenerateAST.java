@@ -9,6 +9,7 @@ import java.util.List;
 public class GenerateAST {
     public static final List<String> AST_TYPES = Arrays.asList(
         "Binary: Expr left, Token operator, Expr right",
+        "Call: Expr callee, List<Expr> arguments, Token paren",
         "Grouping: Expr expression",
         "Literal: Object value",
         "Unary: Token operator, Expr right",
@@ -28,6 +29,8 @@ public class GenerateAST {
             "Expression: Expr expression",
             "Print: Expr expression",
             "Var: Token name, Expr initializer",
+            "Return: Token keyword, Expr value",
+            "Function: Token name, List<Token> params, List<Stmt> body",
             "Block: List<Stmt> statements",
             "If: Expr condition, Stmt thenBranch, Stmt elseBranch",
             "While: Expr condition, Stmt body"

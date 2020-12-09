@@ -1,9 +1,31 @@
 package lox;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
-    private Environment environment = new Environment();
+    /** holds pre-defined native functions **/
+    final Environment GLOBALS = new Environment();
+    Environment environment = GLOBALS;
+
+    Interpreter() {
+        GLOBALS.define("clock", new LoxCallable() {
+            @Override
+            public Object call(Interpreter interpreter, List<Object> arguments) {
+                return (double) System.currentTimeMillis() / 1000.0;
+            }
+
+            @Override
+            public int arity() {
+                return 0;
+            }
+
+            @Override
+            public String toString() {
+                return "<native fn>";
+            }
+        });
+    }
 
     @Override
     public Object visitLiteralExpr(Expr.Literal literal) {
@@ -80,6 +102,30 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
 
     @Override
+    public Object visitCallExpr(Expr.Call call) {
+        //--------- process callee ----------//
+        Object callee = evaluate(call.callee);
+
+        if (!(callee instanceof LoxCallable)) {
+            throw new RuntimeError(call.paren, "Only functions and classes can be called.");
+        }
+        LoxCallable callable = (LoxCallable) callee;
+
+        //--------- process args ----------//
+        List<Object> arguments = new ArrayList<>();
+        for (Expr arg : call.arguments) {
+            arguments.add(evaluate(arg));
+        }
+
+        if (arguments.size() != callable.arity()) {
+            throw new RuntimeError(call.paren, "Expected " + callable.arity() + " arguments but got " +
+                                          arguments.size() + ".");
+        }
+
+        return callable.call(this, arguments);
+    }
+
+    @Override
     public Object visitVariableExpr(Expr.Variable variable) {
         return environment.get(variable.name);
     }
@@ -117,6 +163,14 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
 
     @Override
+    public Void visitReturnStmt(Stmt.Return returnStmt) {
+        Object value = returnStmt.value == null
+                   ? null
+                   : evaluate(returnStmt.value);
+        throw new Return(value);
+    }
+
+    @Override
     public Void visitVarStmt(Stmt.Var varStmt) {
         Object value = null;
         if (varStmt.initializer != null) {
@@ -128,12 +182,19 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
 
     @Override
+    public Void visitFunctionStmt(Stmt.Function functionStmt) {
+        LoxFunction function = new LoxFunction(functionStmt, environment);
+        environment.define(functionStmt.name.lexeme, function);
+        return null;
+    }
+
+    @Override
     public Void visitBlockStmt(Stmt.Block blockStmt) {
         executeBlock(blockStmt.statements, new Environment(environment));
         return null;
     }
 
-    private void executeBlock(List<Stmt> statements, Environment environment) {
+    void executeBlock(List<Stmt> statements, Environment environment) {
         // retain a copy of the outer environment to restore after the block
         Environment original = this.environment;
 
