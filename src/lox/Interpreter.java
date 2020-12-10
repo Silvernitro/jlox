@@ -1,12 +1,15 @@
 package lox;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     /** holds pre-defined native functions **/
     final Environment GLOBALS = new Environment();
     Environment environment = GLOBALS;
+    private final Map<Expr, Integer> locals = new HashMap<>();
 
     Interpreter() {
         GLOBALS.define("clock", new LoxCallable() {
@@ -127,13 +130,29 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     @Override
     public Object visitVariableExpr(Expr.Variable variable) {
-        return environment.get(variable.name);
+        return lookUpVariable(variable.name, variable);
+    }
+
+    private Object lookUpVariable(Token name, Expr var) {
+        Integer distance = locals.get(var);
+        if (distance == null) {
+            return GLOBALS.get(name);
+        }
+
+        return environment.getAt(distance, name);
     }
 
     @Override
     public Object visitAssignExpr(Expr.Assign assign) {
         Object value = evaluate(assign.value);
-        environment.assign(assign.name, value);
+
+        Integer distance = locals.get(assign);
+        if (distance == null) {
+            GLOBALS.assign(assign.name, value);
+        } else {
+            environment.assignAt(distance, assign.name, value);
+        }
+
         return value;
     }
 
@@ -242,6 +261,10 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     private Object evaluate(Expr expr) {
         return expr.accept(this);
+    }
+
+    public void resolve(Expr expr, int depth) {
+        locals.put(expr, depth);
     }
 
     private String stringify(Object obj) {

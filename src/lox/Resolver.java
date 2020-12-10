@@ -22,12 +22,13 @@ public class Resolver implements Stmt.Visitor<Void>, Expr.Visitor<Void> {
         stmt.accept(this);
     }
 
-    private void resolve(List<Stmt> stmtList) {
+    void resolve(List<Stmt> stmtList) {
         for (Stmt stmt : stmtList) {
             resolve(stmt);
         }
     }
 
+    /** This is where all resolutions end up and exit to the interpreter **/
     private void resolveLocal(Expr expr, Token name) {
         for (int i = scopes.size() - 1; i >= 0; i--) {
             if (scopes.get(i).containsKey(name.lexeme)) {
