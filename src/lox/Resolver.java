@@ -8,6 +8,12 @@ import java.util.Stack;
 public class Resolver implements Stmt.Visitor<Void>, Expr.Visitor<Void> {
     private final Interpreter interpreter;
     private final Stack<Map<String, Boolean>> scopes = new Stack<>();
+    private FunctionType currentFunction = FunctionType.NONE;
+    private enum FunctionType {
+        // TODO: add more types for classes later
+        NONE,
+        FUNCTION
+    }
 
     Resolver(Interpreter interpreter) {
         this.interpreter = interpreter;
@@ -38,15 +44,19 @@ public class Resolver implements Stmt.Visitor<Void>, Expr.Visitor<Void> {
         }
     }
 
-    private void resolveFunction(Stmt.Function function) {
+    private void resolveFunction(Stmt.Function function, FunctionType type) {
         beginScope();
+
+        FunctionType enclosingFunction = currentFunction;
+        currentFunction = type;
 
         for (Token param : function.params) {
             declare(param);
             define(param);
         }
-
         resolve(function.body);
+
+        currentFunction = enclosingFunction;
         endScope();
     }
     // ------------- END RESOLUTION HELPERS ------------- //
@@ -64,6 +74,11 @@ public class Resolver implements Stmt.Visitor<Void>, Expr.Visitor<Void> {
         if (scopes.isEmpty()) return;
 
         Map<String, Boolean> scope = scopes.peek();
+
+        if (scope.containsKey(name.lexeme)) {
+            Lox.error(name, "Cannot redeclare variable in the same scope.");
+        }
+
         scope.put(name.lexeme, false);
     }
 
@@ -164,6 +179,11 @@ public class Resolver implements Stmt.Visitor<Void>, Expr.Visitor<Void> {
 
     @Override
     public Void visitReturnStmt(Stmt.Return Return) {
+        if (currentFunction != FunctionType.FUNCTION) {
+            // user puts a return statement outside of a fxn
+            Lox.error(Return.keyword, "Cannot return from top-level code.");
+        }
+
         if (Return.value != null) resolve(Return.value);
         return null;
     }
@@ -174,7 +194,7 @@ public class Resolver implements Stmt.Visitor<Void>, Expr.Visitor<Void> {
         declare(function.name);
         define(function.name);
 
-        resolveFunction(function);
+        resolveFunction(function, FunctionType.FUNCTION);
         return null;
     }
 
