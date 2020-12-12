@@ -155,6 +155,11 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
 
     @Override
+    public Object visitThisExpr(Expr.This thisExpr) {
+        return lookUpVariable(thisExpr.keyword, thisExpr);
+    }
+
+    @Override
     public Object visitVariableExpr(Expr.Variable variable) {
         return lookUpVariable(variable.name, variable);
     }

@@ -122,6 +122,12 @@ public class Resolver implements Stmt.Visitor<Void>, Expr.Visitor<Void> {
     }
 
     @Override
+    public Void visitThisExpr(Expr.This thisExpr) {
+        resolveLocal(thisExpr, thisExpr.keyword);
+        return null;
+    }
+
+    @Override
     public Void visitGroupingExpr(Expr.Grouping grouping) {
         resolve(grouping.expression);
         return null;
@@ -196,10 +202,14 @@ public class Resolver implements Stmt.Visitor<Void>, Expr.Visitor<Void> {
         declare(classStmt.name);
         define(classStmt.name);
 
+        beginScope();
+        scopes.peek().put("this", true);
+
         for (Stmt.Function function : classStmt.methods) {
             FunctionType declaration = FunctionType.METHOD;
             resolveFunction(function, declaration);
         }
+        endScope();
 
         return null;
     }

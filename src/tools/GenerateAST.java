@@ -12,6 +12,7 @@ public class GenerateAST {
         "Call: Expr callee, List<Expr> arguments, Token paren",
         "Get: Expr object, Token name",
         "Set: Expr object, Token name, Expr value",
+        "This: Token keyword",
         "Grouping: Expr expression",
         "Literal: Object value",
         "Unary: Token operator, Expr right",

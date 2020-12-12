@@ -17,7 +17,8 @@ public class LoxInstance {
         }
 
         LoxFunction method = klass.findMethod(name.lexeme);
-        if (method != null) return method;
+        // when a class method is get-ed, a bound copy is made
+        if (method != null) return method.bind(this);
 
         throw new RuntimeError(name, "Undefined property: " + name.lexeme + ".");
     }
