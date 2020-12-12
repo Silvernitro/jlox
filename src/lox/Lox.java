@@ -46,7 +46,6 @@ public class Lox {
 
         while(true) {
             String line = reader.readLine();
-//            System.out.println(line);
 
             // when ctrl-D is pressed, reader returns null
             if (line == null) {
@@ -58,13 +57,23 @@ public class Lox {
     }
 
     private static void run(String code) {
+        // STEP 1: SCAN
         Scanner scanner = new Scanner(code);
         ArrayList<Token> tokens = scanner.scanTokens();
+
+        // STEP 2: PARSE
         Parser parser = new Parser(tokens);
         List<Stmt> statements = parser.parse();
         // check for parse errors
         if (hadError) return;
 
+        // STEP 3: RESOLVE
+        Resolver resolver = new Resolver(interpreter);
+        resolver.resolve(statements);
+        // check for resolution errors
+        if (hadError) return;
+
+        // STEP 4: INTERPRET
         interpreter.interpret(statements);
     }
 
