@@ -32,6 +32,9 @@ public class Parser {
             if (match(TokenType.VAR)) {
                 return varDeclaration();
             }
+            if (match(TokenType.CLASS)) {
+                return classDeclaration();
+            }
             if (match(TokenType.FUN)) {
                 return function("function");
             }
@@ -53,6 +56,21 @@ public class Parser {
 
         consume(TokenType.SEMICOLON, "Expect ';' after variable declaration.");
         return new Stmt.Var(name, initializer);
+    }
+
+    private Stmt classDeclaration() {
+        Token name = consume(TokenType.IDENTIFIER, "Expect class name.");
+        consume(TokenType.LEFT_BRACE, "Expect '{' after class name.");
+
+        List<Stmt.Function> methods = new ArrayList<>();
+        while (!isAtEnd() && !check(TokenType.RIGHT_BRACE)) {
+            Stmt function = function("method");
+            assert function instanceof Stmt.Function;
+            methods.add((Stmt.Function) function);
+        }
+
+        consume(TokenType.RIGHT_BRACE, "Expect '}' after class body.");
+        return new Stmt.Class(name, methods);
     }
 
     /** Type will enable methods vs function disparity later on **/

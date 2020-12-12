@@ -178,6 +178,13 @@ public class Resolver implements Stmt.Visitor<Void>, Expr.Visitor<Void> {
     }
 
     @Override
+    public Void visitClassStmt(Stmt.Class classStmt) {
+        declare(classStmt.name);
+        define(classStmt.name);
+        return null;
+    }
+
+    @Override
     public Void visitReturnStmt(Stmt.Return Return) {
         if (currentFunction != FunctionType.FUNCTION) {
             // user puts a return statement outside of a fxn

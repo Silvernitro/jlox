@@ -201,6 +201,14 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
 
     @Override
+    public Void visitClassStmt(Stmt.Class classStmt) {
+        environment.define(classStmt.name.lexeme, null);
+        LoxClass klass = new LoxClass(classStmt.name.lexeme);
+        environment.assign(classStmt.name, klass);
+        return null;
+    }
+
+    @Override
     public Void visitFunctionStmt(Stmt.Function functionStmt) {
         LoxFunction function = new LoxFunction(functionStmt, environment);
         environment.define(functionStmt.name.lexeme, function);

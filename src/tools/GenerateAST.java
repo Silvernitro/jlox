@@ -7,7 +7,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public class GenerateAST {
-    public static final List<String> AST_TYPES = Arrays.asList(
+    public static final List<String> EXPR_AST_TYPES = Arrays.asList(
         "Binary: Expr left, Token operator, Expr right",
         "Call: Expr callee, List<Expr> arguments, Token paren",
         "Grouping: Expr expression",
@@ -18,23 +18,26 @@ public class GenerateAST {
         "Logical: Expr left, Token operator, Expr right"
     );
 
+    public static final List<String> STMT_AST_TYPES = Arrays.asList(
+        "Expression: Expr expression",
+        "Print: Expr expression",
+        "Var: Token name, Expr initializer",
+        "Return: Token keyword, Expr value",
+        "Function: Token name, List<Token> params, List<Stmt> body",
+        "Class: Token name, List<Stmt.Function> methods",
+        "Block: List<Stmt> statements",
+        "If: Expr condition, Stmt thenBranch, Stmt elseBranch",
+        "While: Expr condition, Stmt body"
+    );
+
     public static void main(String[] args) throws IOException {
         if (args.length != 1) {
             System.err.println("No filepath specified for generateAST.");
             System.exit(64);
         }
         String outputDirectory = args[0];
-        defineAST(outputDirectory, "Expr", AST_TYPES);
-        defineAST(outputDirectory, "Stmt", Arrays.asList(
-            "Expression: Expr expression",
-            "Print: Expr expression",
-            "Var: Token name, Expr initializer",
-            "Return: Token keyword, Expr value",
-            "Function: Token name, List<Token> params, List<Stmt> body",
-            "Block: List<Stmt> statements",
-            "If: Expr condition, Stmt thenBranch, Stmt elseBranch",
-            "While: Expr condition, Stmt body"
-        ));
+        defineAST(outputDirectory, "Expr", EXPR_AST_TYPES);
+        defineAST(outputDirectory, "Stmt", STMT_AST_TYPES);
     }
 
     private static void defineAST(String outputDirectory, String baseName, List<String> types)
@@ -68,7 +71,7 @@ public class GenerateAST {
         writer.println("    interface Visitor<R> {");
         for (String type : types) {
             String typeName = type.split(":")[0].trim();
-            writer.println("        R visit" + typeName + baseName + "(" + typeName + " " + typeName.toLowerCase() +
+            writer.println("        R visit" + typeName + baseName + "(" + typeName + " " + typeName +
                                    ");");
         }
         writer.println("    }\n");
