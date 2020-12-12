@@ -12,7 +12,8 @@ public class Resolver implements Stmt.Visitor<Void>, Expr.Visitor<Void> {
     private enum FunctionType {
         // TODO: add more types for classes later
         NONE,
-        FUNCTION
+        FUNCTION,
+        METHOD
     }
 
     Resolver(Interpreter interpreter) {
@@ -194,6 +195,12 @@ public class Resolver implements Stmt.Visitor<Void>, Expr.Visitor<Void> {
     public Void visitClassStmt(Stmt.Class classStmt) {
         declare(classStmt.name);
         define(classStmt.name);
+
+        for (Stmt.Function function : classStmt.methods) {
+            FunctionType declaration = FunctionType.METHOD;
+            resolveFunction(function, declaration);
+        }
+
         return null;
     }
 
