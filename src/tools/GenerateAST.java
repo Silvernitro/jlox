@@ -10,6 +10,8 @@ public class GenerateAST {
     public static final List<String> EXPR_AST_TYPES = Arrays.asList(
         "Binary: Expr left, Token operator, Expr right",
         "Call: Expr callee, List<Expr> arguments, Token paren",
+        "Get: Expr object, Token name",
+        "Set: Expr object, Token name, Expr value",
         "Grouping: Expr expression",
         "Literal: Object value",
         "Unary: Token operator, Expr right",
