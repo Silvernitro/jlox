@@ -14,7 +14,8 @@ public class Resolver implements Stmt.Visitor<Void>, Expr.Visitor<Void> {
         // TODO: add more types for classes later
         NONE,
         FUNCTION,
-        METHOD
+        METHOD,
+        INITIALIZER
     }
     private enum ClassType {
         NONE,
@@ -217,7 +218,11 @@ public class Resolver implements Stmt.Visitor<Void>, Expr.Visitor<Void> {
         scopes.peek().put("this", true);
 
         for (Stmt.Function function : classStmt.methods) {
-            FunctionType declaration = FunctionType.METHOD;
+            boolean isInitializer = function.name.lexeme.equals(LoxClass.INIT_KEYWORD);
+            FunctionType declaration = isInitializer
+                       ? FunctionType.INITIALIZER
+                       : FunctionType.METHOD;
+
             resolveFunction(function, declaration);
         }
 
@@ -228,12 +233,16 @@ public class Resolver implements Stmt.Visitor<Void>, Expr.Visitor<Void> {
 
     @Override
     public Void visitReturnStmt(Stmt.Return Return) {
-        if (currentFunction != FunctionType.FUNCTION) {
-            // user puts a return statement outside of a fxn
-            Lox.error(Return.keyword, "Cannot return from top-level code.");
+        if (Return.value != null) {
+            if (currentFunction == FunctionType.INITIALIZER) {
+                Lox.error(Return.keyword, "Cannot return value from initializer.");
+            } else if (currentFunction != FunctionType.FUNCTION) {
+                Lox.error(Return.keyword, "Cannot return from top-level code.");
+            }
+
+            resolve(Return.value);
         }
 
-        if (Return.value != null) resolve(Return.value);
         return null;
     }
 
