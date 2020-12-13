@@ -34,6 +34,11 @@ public class Environment {
         throw new RuntimeError(token, "Undefined variable '" + name + "'.");
     }
 
+    Object getAt(int distance, String name) {
+        // Note: Environment.get is not used as it will continue walking up the env chain
+        return ancestor(distance).values.get(name);
+    }
+
     Object getAt(int distance, Token name) {
         // Note: Environment.get is not used as it will continue walking up the env chain
         return ancestor(distance).values.get(name.lexeme);

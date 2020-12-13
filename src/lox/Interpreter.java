@@ -129,6 +129,37 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
 
     @Override
+    public Object visitGetExpr(Expr.Get get) {
+        Object object = evaluate(get.object);
+
+        if (!(object instanceof LoxInstance)) {
+            throw new RuntimeError(get.name, "Only instances can have properties.");
+        }
+
+        LoxInstance instance = (LoxInstance) object;
+        return instance.get(get.name);
+    }
+
+    @Override
+    public Object visitSetExpr(Expr.Set set) {
+        Object object = evaluate(set.object);
+
+        if (!(object instanceof LoxInstance)) {
+            throw new RuntimeError(set.name, "Only instances can have properties.");
+        }
+
+        Object value = evaluate(set.value);
+        LoxInstance instance = (LoxInstance) object;
+        instance.set(set.name, value);
+        return value;
+    }
+
+    @Override
+    public Object visitThisExpr(Expr.This thisExpr) {
+        return lookUpVariable(thisExpr.keyword, thisExpr);
+    }
+
+    @Override
     public Object visitVariableExpr(Expr.Variable variable) {
         return lookUpVariable(variable.name, variable);
     }
@@ -197,6 +228,22 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         }
 
         environment.define(varStmt.name.lexeme, value);
+        return null;
+    }
+
+    @Override
+    public Void visitClassStmt(Stmt.Class classStmt) {
+        environment.define(classStmt.name.lexeme, null);
+
+        Map<String, LoxFunction> methods = new HashMap<>();
+        for (Stmt.Function f : classStmt.methods) {
+            LoxFunction function = new LoxFunction(f, environment, f.name.lexeme.equals(LoxClass.INIT_KEYWORD));
+            methods.put(f.name.lexeme, function);
+        }
+
+        LoxClass klass = new LoxClass(classStmt.name.lexeme, methods);
+        environment.assign(classStmt.name, klass);
+
         return null;
     }
 

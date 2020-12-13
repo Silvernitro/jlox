@@ -4,12 +4,13 @@ import java.util.List;
 
 abstract class Stmt {
     interface Visitor<R> {
-        R visitExpressionStmt(Expression expression);
-        R visitPrintStmt(Print print);
-        R visitVarStmt(Var var);
+        R visitExpressionStmt(Expression Expression);
+        R visitPrintStmt(Print Print);
+        R visitVarStmt(Var Var);
         R visitReturnStmt(Return Return);
-        R visitFunctionStmt(Function function);
-        R visitBlockStmt(Block block);
+        R visitFunctionStmt(Function Function);
+        R visitClassStmt(Class Class);
+        R visitBlockStmt(Block Block);
         R visitIfStmt(If If);
         R visitWhileStmt(While While);
     }
@@ -86,6 +87,21 @@ abstract class Stmt {
         @Override
         <R> R accept(Visitor<R> visitor) {
             return visitor.visitFunctionStmt(this);
+        }
+    }
+
+    static class Class extends Stmt {
+        final Token name;
+        final List<Stmt.Function> methods;
+
+        Class(Token name, List<Stmt.Function> methods) {
+            this.name = name;
+            this.methods = methods;
+        }
+
+        @Override
+        <R> R accept(Visitor<R> visitor) {
+            return visitor.visitClassStmt(this);
         }
     }
 

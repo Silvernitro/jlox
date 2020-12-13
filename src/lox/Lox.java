@@ -57,6 +57,8 @@ public class Lox {
     }
 
     private static void run(String code) {
+        hadError = false;
+
         // STEP 1: SCAN
         Scanner scanner = new Scanner(code);
         ArrayList<Token> tokens = scanner.scanTokens();

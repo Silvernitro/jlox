@@ -9,10 +9,17 @@ public class Resolver implements Stmt.Visitor<Void>, Expr.Visitor<Void> {
     private final Interpreter interpreter;
     private final Stack<Map<String, Boolean>> scopes = new Stack<>();
     private FunctionType currentFunction = FunctionType.NONE;
+    private ClassType currentClass = ClassType.NONE;
     private enum FunctionType {
         // TODO: add more types for classes later
         NONE,
-        FUNCTION
+        FUNCTION,
+        METHOD,
+        INITIALIZER
+    }
+    private enum ClassType {
+        NONE,
+        CLASS
     }
 
     Resolver(Interpreter interpreter) {
@@ -108,6 +115,29 @@ public class Resolver implements Stmt.Visitor<Void>, Expr.Visitor<Void> {
     }
 
     @Override
+    public Void visitGetExpr(Expr.Get get) {
+        resolve(get.object);
+        return null;
+    }
+
+    @Override
+    public Void visitSetExpr(Expr.Set set) {
+        resolve(set.object);
+        resolve(set.value);
+        return null;
+    }
+
+    @Override
+    public Void visitThisExpr(Expr.This thisExpr) {
+        if (currentClass == ClassType.NONE) {
+            Lox.error(thisExpr.keyword, "Cannot use 'this' keyword outside of class.");
+        }
+
+        resolveLocal(thisExpr, thisExpr.keyword);
+        return null;
+    }
+
+    @Override
     public Void visitGroupingExpr(Expr.Grouping grouping) {
         resolve(grouping.expression);
         return null;
@@ -178,13 +208,41 @@ public class Resolver implements Stmt.Visitor<Void>, Expr.Visitor<Void> {
     }
 
     @Override
-    public Void visitReturnStmt(Stmt.Return Return) {
-        if (currentFunction != FunctionType.FUNCTION) {
-            // user puts a return statement outside of a fxn
-            Lox.error(Return.keyword, "Cannot return from top-level code.");
+    public Void visitClassStmt(Stmt.Class classStmt) {
+        ClassType previousClass = currentClass;
+        currentClass = ClassType.CLASS;
+
+        declare(classStmt.name);
+        define(classStmt.name);
+        beginScope();
+        scopes.peek().put("this", true);
+
+        for (Stmt.Function function : classStmt.methods) {
+            boolean isInitializer = function.name.lexeme.equals(LoxClass.INIT_KEYWORD);
+            FunctionType declaration = isInitializer
+                       ? FunctionType.INITIALIZER
+                       : FunctionType.METHOD;
+
+            resolveFunction(function, declaration);
         }
 
-        if (Return.value != null) resolve(Return.value);
+        endScope();
+        currentClass = previousClass;
+        return null;
+    }
+
+    @Override
+    public Void visitReturnStmt(Stmt.Return Return) {
+        if (Return.value != null) {
+            if (currentFunction == FunctionType.INITIALIZER) {
+                Lox.error(Return.keyword, "Cannot return value from initializer.");
+            } else if (currentFunction != FunctionType.FUNCTION) {
+                Lox.error(Return.keyword, "Cannot return from top-level code.");
+            }
+
+            resolve(Return.value);
+        }
+
         return null;
     }
 
