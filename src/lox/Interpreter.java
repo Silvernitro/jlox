@@ -237,7 +237,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
         Map<String, LoxFunction> methods = new HashMap<>();
         for (Stmt.Function f : classStmt.methods) {
-            LoxFunction function = new LoxFunction(f, environment);
+            LoxFunction function = new LoxFunction(f, environment, f.name.lexeme.equals(LoxClass.INIT_KEYWORD));
             methods.put(f.name.lexeme, function);
         }
 

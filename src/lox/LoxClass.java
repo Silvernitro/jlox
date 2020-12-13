@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 public class LoxClass implements LoxCallable {
+    public static final String INIT_KEYWORD = "init";
     final String name;
     Map<String, LoxFunction> methods = new HashMap<>();
 
@@ -19,13 +20,23 @@ public class LoxClass implements LoxCallable {
 
     @Override
     public Object call(Interpreter interpreter, List<Object> arguments) {
-        return new LoxInstance(this);
+        LoxInstance instance = new LoxInstance(this);
+        LoxFunction constructor = findMethod(INIT_KEYWORD);
+
+        if (constructor != null) {
+            constructor.bind(instance).call(interpreter, arguments);
+        }
+
+        return instance;
     }
 
     @Override
     public int arity() {
-        // TODO: support multi-arg constructors
-        return 0;
+        LoxFunction constructor = findMethod(INIT_KEYWORD);
+        if (constructor == null) {
+            return 0;
+        }
+        return constructor.arity();
     }
 
     @Override
