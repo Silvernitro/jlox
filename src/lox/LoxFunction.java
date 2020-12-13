@@ -36,7 +36,7 @@ public class LoxFunction implements LoxCallable {
             // if fxn is an initializer, fall-through and return the instance below
         }
 
-        if (isInitializer) return closure.getAt(0, LoxClass.INIT_KEYWORD);
+        if (isInitializer) return closure.getAt(0, "this");
         // default return value if no return stmt is found
         return null;
     }
