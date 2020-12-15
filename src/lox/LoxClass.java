@@ -17,7 +17,14 @@ public class LoxClass implements LoxCallable {
     }
 
     LoxFunction findMethod(String name) {
-        return methods.get(name);
+        LoxFunction method = methods.get(name);
+
+        // try walking up inheritance chain
+        if (method == null && superclass != null) {
+            method = superclass.findMethod(name);
+        }
+
+        return method;
     }
 
     @Override
