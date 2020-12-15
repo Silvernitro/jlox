@@ -155,6 +155,21 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
 
     @Override
+    public Object visitSuperExpr(Expr.Super superExpr) {
+        Integer distance = locals.get(superExpr);
+        LoxClass superclass = (LoxClass) environment.getAt(distance, "super");
+        // Hack: the 'this' keyword is always bound ONE environment inside the 'super' environment
+        LoxInstance thisObject = (LoxInstance) environment.getAt(distance - 1, "this");
+
+        LoxFunction method = superclass.findMethod(superExpr.method.lexeme);
+        if (method == null) {
+            throw new RuntimeError(superExpr.method, "Undefined property: " + superExpr.method.lexeme + ".");
+        }
+
+        return method.bind(thisObject);
+    }
+
+    @Override
     public Object visitThisExpr(Expr.This thisExpr) {
         return lookUpVariable(thisExpr.keyword, thisExpr);
     }
@@ -235,13 +250,6 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     public Void visitClassStmt(Stmt.Class classStmt) {
         environment.define(classStmt.name.lexeme, null);
 
-        // process methods
-        Map<String, LoxFunction> methods = new HashMap<>();
-        for (Stmt.Function f : classStmt.methods) {
-            LoxFunction function = new LoxFunction(f, environment, f.name.lexeme.equals(LoxClass.INIT_KEYWORD));
-            methods.put(f.name.lexeme, function);
-        }
-
         // process superclass
         LoxClass superclass = null;
         if (classStmt.superclass != null) {
@@ -253,7 +261,25 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
             superclass = (LoxClass) rawSuperclass;
         }
 
+        // environment for 'super' keyword binding
+        if (superclass != null) {
+            environment = new Environment(environment);
+            environment.define("super", superclass);
+        }
+
+        // process methods
+        Map<String, LoxFunction> methods = new HashMap<>();
+        for (Stmt.Function f : classStmt.methods) {
+            LoxFunction function = new LoxFunction(f, environment, f.name.lexeme.equals(LoxClass.INIT_KEYWORD));
+            methods.put(f.name.lexeme, function);
+        }
+
         LoxClass klass = new LoxClass(classStmt.name.lexeme, superclass, methods);
+
+        if (superclass != null) {
+            // jump out of 'super' environment
+            environment = environment.enclosing;
+        }
         environment.assign(classStmt.name, klass);
 
         return null;

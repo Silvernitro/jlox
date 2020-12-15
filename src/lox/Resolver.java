@@ -19,7 +19,8 @@ public class Resolver implements Stmt.Visitor<Void>, Expr.Visitor<Void> {
     }
     private enum ClassType {
         NONE,
-        CLASS
+        CLASS,
+        SUBCLASS
     }
 
     Resolver(Interpreter interpreter) {
@@ -128,6 +129,18 @@ public class Resolver implements Stmt.Visitor<Void>, Expr.Visitor<Void> {
     }
 
     @Override
+    public Void visitSuperExpr(Expr.Super superExpr) {
+        if (currentClass == ClassType.NONE) {
+            Lox.error(superExpr.keyword, "Cannot use 'super' keyword outside of class.");
+        } else if (currentClass != ClassType.SUBCLASS) {
+            Lox.error(superExpr.keyword, "Cannot use 'super' keyword without superclass.");
+        }
+
+        resolveLocal(superExpr, superExpr.keyword);
+        return null;
+    }
+
+    @Override
     public Void visitThisExpr(Expr.This thisExpr) {
         if (currentClass == ClassType.NONE) {
             Lox.error(thisExpr.keyword, "Cannot use 'this' keyword outside of class.");
@@ -223,7 +236,10 @@ public class Resolver implements Stmt.Visitor<Void>, Expr.Visitor<Void> {
         }
 
         if (superclass != null) {
+            currentClass = ClassType.SUBCLASS;
             resolve(superclass);
+            beginScope();
+            scopes.peek().put("super", true);
         }
 
         beginScope();
@@ -239,6 +255,9 @@ public class Resolver implements Stmt.Visitor<Void>, Expr.Visitor<Void> {
         }
 
         endScope();
+        if (superclass != null) {
+            endScope();
+        }
         currentClass = previousClass;
         return null;
     }

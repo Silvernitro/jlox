@@ -29,6 +29,12 @@ public class ASTPrinter implements Expr.Visitor<String> {
     }
 
     @Override
+    public String visitSuperExpr(Expr.Super Super) {
+        // placeholder so that class can compile
+        return null;
+    }
+
+    @Override
     public String visitThisExpr(Expr.This This) {
         // placeholder so that class can compile
         return null;
