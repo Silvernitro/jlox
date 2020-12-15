@@ -7,15 +7,24 @@ import java.util.Map;
 public class LoxClass implements LoxCallable {
     public static final String INIT_KEYWORD = "init";
     final String name;
+    final LoxClass superclass;
     Map<String, LoxFunction> methods = new HashMap<>();
 
-    LoxClass(String name, Map<String, LoxFunction> methods) {
+    LoxClass(String name, LoxClass superclass, Map<String, LoxFunction> methods) {
         this.name = name;
+        this.superclass = superclass;
         this.methods = methods;
     }
 
     LoxFunction findMethod(String name) {
-        return methods.get(name);
+        LoxFunction method = methods.get(name);
+
+        // try walking up inheritance chain
+        if (method == null && superclass != null) {
+            method = superclass.findMethod(name);
+        }
+
+        return method;
     }
 
     @Override
